@@ -1,17 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Vanilla JavaScript App</title>
+  <meta charset="UTF-8" />
+  <title>Live Bitcoin Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 10px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .buttons {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    button {
+      margin: 0 5px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    .stats {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #chart {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+  </style>
 </head>
-
 <body>
-  <main>
-    <h1>Vanilla JavaScript App</h1>
-  </main>
-</body>
+  <h1>Live Bitcoin Dashboard</h1>
 
+  <div class="buttons">
+    <button onclick="loadData(30)">Last 30 Days</button>
+    <button onclick="loadData(60)">Last 60 Days</button>
+  </div>
+
+  <div class="stats">
+    <p id="avg">Average Price: -</p>
+    <p id="high">High Price: -</p>
+    <p id="low">Low Price: -</p>
+  </div>
+
+  <div id="chart"></div>
+
+  <script>
+    async function fetchBtcData(days) {
+      const url = "https://api.binance.com/api/v3/klines";
+      const params = new URLSearchParams({
+        symbol: "BTCUSDT",
+        interval: "1d",
+        limit: days.toString()
+      });
+
+      const response = await fetch(`${url}?${params.toString()}`);
+      const data = await response.json();
+
+      const dates = [];
+      const prices = [];
+
+      for (const row of data) {
+        const openTime = row[0];   // ms
+        const close = parseFloat(row[4]);
+
+        dates.push(new Date(openTime));
+        prices.push(close);
+      }
+
+      return { dates, prices };
+    }
+
+    function updateStats(prices) {
+      const avg =
+        prices.reduce((sum, p) => sum + p, 0) / prices.length;
+      const high = Math.max(...prices);
+      const low = Math.min(...prices);
+
+      document.getElementById("avg").textContent =
+        `Average Price: $${avg.toFixed(2)}`;
+      document.getElementById("high").textContent =
+        `High Price: $${high.toFixed(2)}`;
+      document.getElementById("low").textContent =
+        `Low Price: $${low.toFixed(2)}`;
+    }
+
+    function renderChart(dates, prices, days) {
+      const title =
+        days === 60
+          ? "Bitcoin Price (Last 60 Days)"
+          : "Bitcoin Price (Last 30 Days)";
+
+      const trace = {
+        x: dates,
+        y: prices,
+        type: "scatter",
+        mode: "lines",
+        name: "BTCUSDT"
+      };
+
+      const layout = {
+        title: title,
+        xaxis: { title: "Date" },
+        yaxis: { title: "Price (USDT)" }
+      };
+
+      Plotly.newPlot("chart", [trace], layout, { responsive: true });
+    }
+
+    async function loadData(days) {
+      try {
+        const { dates, prices } = await fetchBtcData(days);
+        updateStats(prices);
+        renderChart(dates, prices, days);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load data from Binance.");
+      }
+    }
+
+    // Load 30 days by default
+    loadData(30);
+  </script>
+</body>
 </html>
