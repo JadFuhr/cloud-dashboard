@@ -63,6 +63,7 @@
       const data = await response.json();
 
       const end = performance.now();  // end timer for performance measurement
+      
       console.log(`Data fetch and processing for ${days} days took ${end - start} ms`);
 
       const dates = [];
@@ -113,8 +114,13 @@
         xaxis: { title: "Date" },
         yaxis: { title: "Price (USDT)" }
       };
+      const renderStart = performance.now();
 
       Plotly.newPlot("chart", [trace], layout, { responsive: true });
+
+      const renderEnd = performance.now();
+
+      console.log(`Chart render time (${days} days): ${renderEnd - renderStart} ms`);
     }
 
     async function loadData(days) {
