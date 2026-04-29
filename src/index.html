@@ -51,6 +51,7 @@
 
   <script>
     async function fetchBtcData(days) {
+      const start = performance.now();  // start timer for performance measurement
       const url = "https://api.binance.com/api/v3/klines";
       const params = new URLSearchParams({
         symbol: "BTCUSDT",
@@ -71,6 +72,9 @@
         dates.push(new Date(openTime));
         prices.push(close);
       }
+
+      const end = performance.now();  // end timer for performance measurement
+      console.log(`Data fetch and processing took ${end - start} ms`);
 
       return { dates, prices };
     }
