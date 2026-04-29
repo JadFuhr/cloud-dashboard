@@ -39,6 +39,7 @@
   <div class="buttons">
     <button onclick="loadData(30)">Last 30 Days</button>
     <button onclick="loadData(60)">Last 60 Days</button>
+    <button onclick="loadData(90)">Last 90 Days</button>
   </div>
 
   <div class="stats">
@@ -63,7 +64,7 @@
       const data = await response.json();
 
       const end = performance.now();  // end timer for performance measurement
-      
+
       console.log(`Data fetch and processing for ${days} days took ${end - start} ms`);
 
       const dates = [];
@@ -96,10 +97,15 @@
     }
 
     function renderChart(dates, prices, days) {
-      const title =
-        days === 60
-          ? "Bitcoin Price (Last 60 Days)"
-          : "Bitcoin Price (Last 30 Days)";
+      let title = ""; 
+
+      if(days === 30) {
+        title = "BTCUSDT Price - Last 30 Days";
+      } else if(days === 60) {
+        title = "BTCUSDT Price - Last 60 Days";
+      } else if(days === 90) {
+        title = "BTCUSDT Price - Last 90 Days";
+      }
 
       const trace = {
         x: dates,
